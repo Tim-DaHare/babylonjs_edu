@@ -1,9 +1,9 @@
-import React, { useEffect } from 'react'
+import React, { useEffect } from "react"
 
-import { Engine } from '@babylonjs/core/Engines/engine'
+import { Engine } from "@babylonjs/core/Engines/engine"
 
-import '@babylonjs/core/Debug/debugLayer'
-import '@babylonjs/inspector'
+import "@babylonjs/core/Debug/debugLayer"
+import "@babylonjs/inspector"
 
 import MainMenuScene from "./scenes/mainmenu_scene"
 import DodgeScene from "./scenes/dodge_scene"
@@ -11,7 +11,7 @@ import DodgeScene from "./scenes/dodge_scene"
 const App: React.FC = () => {
     const initializeBabylon: () => void = () => {
         // Get the canvas element from the DOM.
-        const canvas = document.getElementById('app_canvas') as HTMLCanvasElement
+        const canvas = document.getElementById("app_canvas") as HTMLCanvasElement
         // Associate a Babylon Engine to it.
         const engine = new Engine(canvas)
 
@@ -21,7 +21,7 @@ const App: React.FC = () => {
         const mainMenuScene = new MainMenuScene(canvas, engine)
         mainMenuScene.initialize()
 
-        const scene = mainMenuScene.scene
+        const { scene } = mainMenuScene
         // scene.debugLayer.show()
 
         // Render every frame
