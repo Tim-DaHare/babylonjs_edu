@@ -1,15 +1,17 @@
 import { Engine } from '@babylonjs/core/Engines/engine'
 import { Scene } from '@babylonjs/core/scene'
-
+import BabylonInstance from "../babylon_instance"
 
 export default abstract class SceneBase {
 
+    public babylonInstance: BabylonInstance
     public canvas: HTMLCanvasElement;
-    public readonly scene: Scene;
+    public scene: Scene;
 
-    constructor(canvas: HTMLCanvasElement, engine: Engine) {
-        this.scene = new Scene(engine);
-        this.canvas = canvas
+    constructor(babylonInstance: BabylonInstance) {
+        this.babylonInstance = babylonInstance
+        this.scene = new Scene(babylonInstance.engine)
+        this.canvas = babylonInstance.canvas
     }
 
     public abstract initialize(): void
