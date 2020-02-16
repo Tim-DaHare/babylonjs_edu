@@ -6,6 +6,8 @@ import { ActionManager } from '@babylonjs/core/Actions/actionManager'
 import { Mesh } from '@babylonjs/core/Meshes/mesh'
 import { MeshBuilder } from '@babylonjs/core/Meshes'
 import { ExecuteCodeAction } from '@babylonjs/core/Actions'
+import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture"
+import { Button, TextBlock, Control } from "@babylonjs/gui"
 
 import SceneBase from "./scene_base"
 
@@ -16,27 +18,59 @@ interface Input {
 
 export default class DodgeScene extends SceneBase {
 
-    OBSTACLE_COUNT = 10;
+    OBSTACLE_COUNT = 6
+    OBSTACLE_MIN_SPEED = 0.3
+    OBSTACLE_MAX_SPEED = 5
     OBSTACLE_SPEED = 0.3
     OBSTACLE_VELOCITY = new Vector3(0, 0, -this.OBSTACLE_SPEED)
 
+    startTime: number = new Date().getTime()
+
     input: Input = {}
+
+    guiTexture: AdvancedDynamicTexture = AdvancedDynamicTexture.CreateFullscreenUI("DODGE_SCENE_UI")
+
+    scoreCounter: TextBlock = new TextBlock("score_counter", "0")
 
     camera: FreeCamera = new FreeCamera('camera1', new Vector3(0, 5, -10), this.scene)
     sphere: Mesh = Mesh.CreateSphere('sphere1', 16, 2, this.scene) // Our built-in 'sphere' shape. Params: name, subdivs, size, scene
     obstacles: Mesh[] = []
 
+    private resetObstaclePosition(obstacle: Mesh): void
+    {
+        const i = this.obstacles.findIndex(mesh => mesh.id === obstacle.id)
+
+        // console.log(i)
+
+        obstacle.position.z = 100 + (i * 15)
+        obstacle.position.x = (Math.random() * 3) - 1.5
+        obstacle.position.y = 1
+    }
+
     public initialize() {
         const { 
-            scene, 
-            canvas, 
+            scene,
+            canvas,
+            guiTexture,
             input,
             camera,
             sphere,
-            obstacles
+            obstacles,
+            scoreCounter
         } = this
 
-        this.scene.actionManager = new ActionManager(scene)
+        // console.log(this.startTime)
+
+        scene.actionManager = new ActionManager(scene)
+
+        scoreCounter.color = "white"
+        scoreCounter.fontSize = 100
+        scoreCounter.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP
+        scoreCounter.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT
+        scoreCounter.paddingRight = "100px"
+        scoreCounter.paddingTop = "50px"
+
+        guiTexture.addControl(scoreCounter)
 
         // const camera = new FreeCamera('camera1', new Vector3(0, 5, -10), scene)
         camera.setTarget(Vector3.Zero()) // This targets the camera to scene origin
@@ -47,7 +81,7 @@ export default class DodgeScene extends SceneBase {
 
         const material = new GridMaterial('grid', scene) // Create a grid material
 
-        sphere.checkCollisions = true
+        // sphere.checkCollisions = true
         sphere.position.y = 1
         sphere.material = material
 
@@ -66,15 +100,17 @@ export default class DodgeScene extends SceneBase {
         scene.actionManager.registerAction(
             new ExecuteCodeAction(
                 { trigger: ActionManager.OnKeyUpTrigger },
-                e => input[e.sourceEvent.key] = e.sourceEvent.type === 'keydown'
+                e => { 
+                    input[e.sourceEvent.key] = e.sourceEvent.type === 'keydown'
+                }
             )
         )
 
-        // const obstacles: Mesh[] = []
         for (let i = 0; i < this.OBSTACLE_COUNT; i++) {
             const newObstacle = MeshBuilder.CreateBox(`Box ${i}`, { size: 1.5 }, scene)
-            newObstacle.checkCollisions = true
-            newObstacle.position.z = 100 + i * 15
+            // newObstacle.checkCollisions = true
+
+            newObstacle.position.z = 100 + (i * 15)
             newObstacle.position.x = (Math.random() * 3) - 1.5
             newObstacle.position.y = 1
 
@@ -94,37 +130,42 @@ export default class DodgeScene extends SceneBase {
             ))
 
             obstacles.push(newObstacle)
+
+
+            // this.resetObstaclePosition(newObstacle)
+
         }
     }
 
     public sceneLoop() {
-            const {
-                input,
-                sphere,
-                obstacles
-            } = this
-            // if (gameOver) {
-            //     return
-            // }
+        const {
+            input,
+            sphere,
+            obstacles,
+            scoreCounter
+        } = this
 
-            if (Math.abs(sphere.position.x) <= 3) {
-                if (input['a'] || input['ArrowLeft']) {
-                    sphere.position.x -= 0.1
-                }
-                if (input['d'] || input['ArrowRight']) {
-                    sphere.position.x += 0.1
-                }
-            } else {
-                sphere.position.x = Math.round(parseFloat(sphere.position.x.toFixed(1)))
+        if (Math.abs(sphere.position.x) <= 3) {
+            if (input['a'] || input['ArrowLeft']) {
+                sphere.position.x -= 0.1
             }
+            if (input['d'] || input['ArrowRight']) {
+                sphere.position.x += 0.1
+            }
+        } else {
+            sphere.position.x = Math.round(parseFloat(sphere.position.x.toFixed(1)))
+        }
 
-            obstacles.forEach(obstacle => {
-                if (obstacle.position.z < -5) {
-                    obstacle.position.z = 100
-                    obstacle.position.y = 1
-                    obstacle.position.x = (Math.random() * 3) - 1.5
-                }
-                obstacle.moveWithCollisions(this.OBSTACLE_VELOCITY)
-            })
+        obstacles.forEach(obstacle => {
+            if (obstacle.position.z < -5) {
+                // this.resetObstaclePosition(obstacle)
+                obstacle.position.z = 75 // + ((obstacles.length -1) * 15)
+                obstacle.position.y = 1
+                obstacle.position.x = (Math.random() * 3) - 1.5
+
+                scoreCounter.text = (parseInt(scoreCounter.text) + 1).toString()
+            }
+            obstacle.moveWithCollisions(this.OBSTACLE_VELOCITY)
+        })
     }
 }

@@ -1,8 +1,5 @@
 import React, { useEffect } from "react"
-
 import BabylonInstance from "./babylon_instance"
-import MainMenuScene from "./scenes/mainmenu_scene"
-import DodgeScene from "./scenes/dodge_scene"
 
 const App: React.FC = () => {
     const initializeBabylon: () => void = () => {
@@ -10,26 +7,6 @@ const App: React.FC = () => {
         babylonInstance.start()
 
         return () => babylonInstance.stop()
-        // Get the canvas element from the DOM.
-        // const canvas = document.getElementById("app_canvas") as HTMLCanvasElement
-        // Associate a Babylon Engine to it.
-        // const engine = new Engine(canvas)
-
-        // Add resize event listener to window and resize the engine to prevent image stretching on window resize
-        // window.addEventListener("resize", () => engine.resize())
-
-        // const mainMenuScene = new MainMenuScene(canvas, engine)
-        // mainMenuScene.initialize()
-
-        // const { scene } = mainMenuScene
-        // scene.debugLayer.show()
-
-        // Render every frame
-
-        // engine.runRenderLoop(() => {
-        //     mainMenuScene.sceneLoop()
-        //     scene.render()
-        // })
     }
 
     useEffect(initializeBabylon, [])

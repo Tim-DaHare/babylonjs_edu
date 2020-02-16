@@ -5,6 +5,9 @@ import { Button, TextBlock } from "@babylonjs/gui"
 
 import SceneBase from "./scene_base"
 
+import TestScene from "./test_scene"
+import DodgeScene from "./dodge_scene"
+
 export default class MainMenuScene extends SceneBase {
 
     camera: FreeCamera = new FreeCamera("camera1", new Vector3(0, 5, -10), this.scene)
@@ -26,6 +29,9 @@ export default class MainMenuScene extends SceneBase {
         dodgeSceneButton.width = "200px"
         dodgeSceneButton.height = "50px"
         dodgeSceneButton.color = "white"
+        dodgeSceneButton.onPointerUpObservable.add(() => {
+            this.babylonInstance.changeScene(new DodgeScene(this.babylonInstance))
+        })
 
         guiTexture.addControl(dodgeSceneButton)
     }
