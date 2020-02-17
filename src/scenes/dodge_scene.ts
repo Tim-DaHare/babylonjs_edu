@@ -23,8 +23,9 @@ export default class DodgeScene extends SceneBase {
     OBSTACLE_COUNT = 5
     OBSTACLE_MIN_SPEED = 0.3
     OBSTACLE_MAX_SPEED = 5
-    OBSTACLE_SPEED = 0.3
-    OBSTACLE_VELOCITY = new Vector3(0, 0, -this.OBSTACLE_SPEED)
+
+    obstaceleSpeed = 0.3
+    obstacleVelocity = new Vector3(0, 0, -this.obstaceleSpeed)
 
     startTime: number = new Date().getTime()
 
@@ -70,7 +71,7 @@ export default class DodgeScene extends SceneBase {
         window.addEventListener("deviceorientation", this.handleOrientation, true)
 
         scoreCounter.color = "white"
-        scoreCounter.fontSize = 100
+        scoreCounter.fontSize = 75
         scoreCounter.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP
         scoreCounter.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT
         scoreCounter.paddingRight = "100px"
@@ -79,7 +80,7 @@ export default class DodgeScene extends SceneBase {
         guiTexture.addControl(scoreCounter)
 
         gameOverText.color = "white"
-        gameOverText.fontSize = 125
+        gameOverText.fontSize = 100
 
         camera.parent = sphere
         camera.setTarget(new Vector3(0, 3, 10)) // This targets the camera to scene origin
@@ -90,13 +91,11 @@ export default class DodgeScene extends SceneBase {
 
         const material = new GridMaterial('grid', scene) // Create a grid material
 
-        // sphere.checkCollisions = true
         sphere.position.y = 1
         sphere.material = material
 
         // Our built-in 'ground' shape. Params: name, width, depth, subdivs, scene
         const ground = Mesh.CreateGround('ground1', 6, 150, 2, scene)
-        ground.checkCollisions = true
         ground.material = material
 
         scene.actionManager.registerAction(
@@ -118,7 +117,6 @@ export default class DodgeScene extends SceneBase {
         // Generate obstacles
         for (let i = 0; i < this.OBSTACLE_COUNT; i++) {
             const newObstacle = MeshBuilder.CreateBox(`Box ${i}`, { size: 1.5 }, scene)
-            // newObstacle.checkCollisions = true
 
             newObstacle.position.z = 75 + (i * (75 / this.OBSTACLE_COUNT))
             newObstacle.position.x = (Math.random() * 3) - 1.5
@@ -146,6 +144,7 @@ export default class DodgeScene extends SceneBase {
     public sceneLoop() {
         const {
             input,
+            startTime,
             sphere,
             camera,
             obstacles,
@@ -153,6 +152,12 @@ export default class DodgeScene extends SceneBase {
         } = this
 
         if (this.gameOver) return
+
+        const gameTime = new Date().getTime() - startTime
+
+        this.obstacleVelocity = new Vector3(0, 0, -(this.OBSTACLE_MIN_SPEED + (gameTime * 0.00001)))
+        // this.OBSTACLE_SPEED = this.OBSTACLE_MIN_SPEED * (gameTime / 100)
+        // console.log(gameTime)
 
         // Sensor controls
         if (input.orientation) {
@@ -180,7 +185,7 @@ export default class DodgeScene extends SceneBase {
 
                 scoreCounter.text = (parseInt(scoreCounter.text) + 1).toString()
             }
-            obstacle.moveWithCollisions(this.OBSTACLE_VELOCITY)
+            obstacle.moveWithCollisions(this.obstacleVelocity)
         })
     }
 
