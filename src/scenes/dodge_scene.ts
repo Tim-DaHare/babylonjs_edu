@@ -1,17 +1,16 @@
 import { Vector3 } from '@babylonjs/core/Maths/math'
+import { SceneLoader } from "@babylonjs/core"
 import { FreeCamera, TargetCamera } from '@babylonjs/core/Cameras'
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight'
 import { GridMaterial } from '@babylonjs/materials/grid'
 import { ActionManager } from '@babylonjs/core/Actions/actionManager'
-import { Mesh } from '@babylonjs/core/Meshes/mesh'
+import { Mesh, AbstractMesh } from '@babylonjs/core/Meshes'
 import { MeshBuilder } from '@babylonjs/core/Meshes'
 import { ExecuteCodeAction } from '@babylonjs/core/Actions'
 import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture"
 import { Button, TextBlock, Control } from "@babylonjs/gui"
 
 import SceneBase from "./scene_base"
-import { Camera } from '@babylonjs/core';
-import { InputManager } from '@babylonjs/core/Inputs/scene.inputManager';
 
 interface Input {
     // Accept random keys with any value for interface 
@@ -40,8 +39,9 @@ export default class DodgeScene extends SceneBase {
     scoreCounter: TextBlock = new TextBlock("score_counter", "0")
 
     // Scene objects
-    camera: TargetCamera = new TargetCamera('main_camera', new Vector3(0, 3, -10), this.scene)
+    camera: FreeCamera = new FreeCamera('main_camera', new Vector3(0, 3, -10), this.scene)
     sphere: Mesh = Mesh.CreateSphere('sphere1', 16, 2, this.scene) // Our built-in 'sphere' shape. Params: name, subdivs, size, scene
+    terrains: Mesh[] = []
     obstacles: Mesh[] = []
 
     private handleOrientation = (event: DeviceOrientationEvent) => {
@@ -65,12 +65,42 @@ export default class DodgeScene extends SceneBase {
             scoreCounter
         } = this
 
+        // Load custom infinite terrain
+        SceneLoader.ImportMesh("", "./assets/", "terrain.glb", this.scene, (importedMeshes: AbstractMesh[]) => {
+            const terrainMesh = importedMeshes[1] as Mesh
+            terrainMesh.setParent(null)
+            terrainMesh.isVisible = false
+
+            for (let i = 0; i < 5; i++) {
+                const terrainInstance = terrainMesh.createInstance(`Terrain ${i}`)
+                terrainInstance.isVisible = true
+                terrainInstance.position = new Vector3(0, -0.5, i * 20)
+            }
+        })
+
+        SceneLoader.ImportMesh("", "./assets/", "tree.glb", this.scene, (importedMeshes: AbstractMesh[]) => {
+            const treeMesh = importedMeshes[0] as Mesh
+            treeMesh.material = this.scene.getMaterialByName("leaves")
+
+            console.log(treeMesh.material)
+
+            treeMesh.setParent(null)
+            // treeMesh.isVisible = false
+
+            // for (let i = 0; i < 20; i++) {
+            //     const treeInstance = treeMesh.createInstance(`Terrain ${i}`)
+            //     // terrainInstance.isVisible = true
+            //     // treeInstance.material = leavesMaterial
+            //     treeInstance.position = new Vector3(0, -0.5, i * 20)
+            // }
+        })
+
         scene.actionManager = new ActionManager(scene)
 
         window.addEventListener("deviceorientation", this.handleOrientation, true)
 
         scoreCounter.color = "white"
-        scoreCounter.fontSize = 75
+        scoreCounter.fontSize = 50
         scoreCounter.textVerticalAlignment = Control.VERTICAL_ALIGNMENT_TOP
         scoreCounter.textHorizontalAlignment = Control.HORIZONTAL_ALIGNMENT_RIGHT
         scoreCounter.paddingRight = "100px"
@@ -79,14 +109,14 @@ export default class DodgeScene extends SceneBase {
         guiTexture.addControl(scoreCounter)
 
         gameOverText.color = "white"
-        gameOverText.fontSize = 100
+        gameOverText.fontSize = 75
 
         camera.parent = sphere
         camera.setTarget(new Vector3(0, 3, 10)) // This targets the camera to scene origin
-        // camera.attachControl(canvas, true)
+        camera.attachControl(canvas, true)
 
         const light = new HemisphericLight('light1', new Vector3(0, 1, 0), scene) // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
-        light.intensity = 0.7
+        // light.intensity = 0.7
 
         const material = new GridMaterial('grid', scene) // Create a grid material
 
@@ -94,8 +124,8 @@ export default class DodgeScene extends SceneBase {
         sphere.material = material
 
         // Our built-in 'ground' shape. Params: name, width, depth, subdivs, scene
-        const ground = Mesh.CreateGround('ground1', 6, 150, 2, scene)
-        ground.material = material
+        // const ground = Mesh.CreateGround('ground1', 6, 150, 2, scene)
+        // ground.material = material
 
         scene.actionManager.registerAction(
             new ExecuteCodeAction(
