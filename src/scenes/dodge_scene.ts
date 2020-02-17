@@ -40,7 +40,6 @@ export default class DodgeScene extends SceneBase {
     scoreCounter: TextBlock = new TextBlock("score_counter", "0")
 
     // Scene objects
-    // camera: FreeCamera = new FreeCamera('camera1', new Vector3(0, 5, -10), this.scene)
     camera: TargetCamera = new TargetCamera('main_camera', new Vector3(0, 3, -10), this.scene)
     sphere: Mesh = Mesh.CreateSphere('sphere1', 16, 2, this.scene) // Our built-in 'sphere' shape. Params: name, subdivs, size, scene
     obstacles: Mesh[] = []
@@ -156,8 +155,6 @@ export default class DodgeScene extends SceneBase {
         const gameTime = new Date().getTime() - startTime
 
         this.obstacleVelocity = new Vector3(0, 0, -(this.OBSTACLE_MIN_SPEED + (gameTime * 0.00001)))
-        // this.OBSTACLE_SPEED = this.OBSTACLE_MIN_SPEED * (gameTime / 100)
-        // console.log(gameTime)
 
         // Sensor controls
         if (input.orientation) {
