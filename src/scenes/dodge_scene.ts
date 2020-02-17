@@ -1,5 +1,5 @@
 import { Vector3 } from '@babylonjs/core/Maths/math'
-import { FreeCamera } from '@babylonjs/core/Cameras/freeCamera'
+import { FreeCamera, TargetCamera } from '@babylonjs/core/Cameras'
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight'
 import { GridMaterial } from '@babylonjs/materials/grid'
 import { ActionManager } from '@babylonjs/core/Actions/actionManager'
@@ -20,7 +20,7 @@ interface Input {
 
 export default class DodgeScene extends SceneBase {
 
-    OBSTACLE_COUNT = 6
+    OBSTACLE_COUNT = 5
     OBSTACLE_MIN_SPEED = 0.3
     OBSTACLE_MAX_SPEED = 5
     OBSTACLE_SPEED = 0.3
@@ -30,11 +30,17 @@ export default class DodgeScene extends SceneBase {
 
     input: Input = {}
 
+    gameOver: boolean = false
+
+    // GUI
     guiTexture: AdvancedDynamicTexture = AdvancedDynamicTexture.CreateFullscreenUI("DODGE_SCENE_UI")
 
+    gameOverText: TextBlock = new TextBlock("game_over", "Game Over!")
     scoreCounter: TextBlock = new TextBlock("score_counter", "0")
 
-    camera: FreeCamera = new FreeCamera('camera1', new Vector3(0, 5, -10), this.scene)
+    // Scene objects
+    // camera: FreeCamera = new FreeCamera('camera1', new Vector3(0, 5, -10), this.scene)
+    camera: TargetCamera = new TargetCamera('main_camera', new Vector3(0, 3, -10), this.scene)
     sphere: Mesh = Mesh.CreateSphere('sphere1', 16, 2, this.scene) // Our built-in 'sphere' shape. Params: name, subdivs, size, scene
     obstacles: Mesh[] = []
 
@@ -44,30 +50,14 @@ export default class DodgeScene extends SceneBase {
             alpha: event.alpha,
             beta: event.beta
         }
-
-        // console.log(event)
     }
-
-    private handleMotion = (event: DeviceMotionEvent) => {
-        console.log(event.rotationRate)
-        this.input.motion = {
-            rotationRate: event.rotationRate
-        }
-    }
-
-    // private resetObstaclePosition(obstacle: Mesh): void {
-    //     const i = this.obstacles.findIndex(mesh => mesh.id === obstacle.id)
-
-    //     obstacle.position.z = 100 + (i * 15)
-    //     obstacle.position.x = (Math.random() * 3) - 1.5
-    //     obstacle.position.y = 1
-    // }
 
     public initialize() {
         const {
             scene,
             canvas,
             guiTexture,
+            gameOverText,
             input,
             camera,
             sphere,
@@ -78,7 +68,6 @@ export default class DodgeScene extends SceneBase {
         scene.actionManager = new ActionManager(scene)
 
         window.addEventListener("deviceorientation", this.handleOrientation, true)
-        window.addEventListener("devicemotion", this.handleMotion, true)
 
         scoreCounter.color = "white"
         scoreCounter.fontSize = 100
@@ -89,9 +78,11 @@ export default class DodgeScene extends SceneBase {
 
         guiTexture.addControl(scoreCounter)
 
-        // const camera = new FreeCamera('camera1', new Vector3(0, 5, -10), scene)
-        camera.setTarget(Vector3.Zero()) // This targets the camera to scene origin
+        gameOverText.color = "white"
+        gameOverText.fontSize = 125
+
         camera.parent = sphere
+        camera.setTarget(new Vector3(0, 3, 10)) // This targets the camera to scene origin
         // camera.attachControl(canvas, true)
 
         const light = new HemisphericLight('light1', new Vector3(0, 1, 0), scene) // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
@@ -124,11 +115,12 @@ export default class DodgeScene extends SceneBase {
             )
         )
 
+        // Generate obstacles
         for (let i = 0; i < this.OBSTACLE_COUNT; i++) {
             const newObstacle = MeshBuilder.CreateBox(`Box ${i}`, { size: 1.5 }, scene)
             // newObstacle.checkCollisions = true
 
-            newObstacle.position.z = 100 + (i * 15)
+            newObstacle.position.z = 75 + (i * (75 / this.OBSTACLE_COUNT))
             newObstacle.position.x = (Math.random() * 3) - 1.5
             newObstacle.position.y = 1
 
@@ -142,14 +134,12 @@ export default class DodgeScene extends SceneBase {
                     }
                 },
                 () => {
-                    console.log('game over')
-                    // gameOver = true
+                    guiTexture.addControl(this.gameOverText)
+                    this.gameOver = true
                 }
             ))
 
             obstacles.push(newObstacle)
-
-            // this.resetObstaclePosition(newObstacle)
         }
     }
 
@@ -162,30 +152,29 @@ export default class DodgeScene extends SceneBase {
             scoreCounter
         } = this
 
-        if (Math.abs(sphere.position.x) <= 3) {
-            // Sensor controls
-            if (input.orientation) {
-                sphere.position.x += (0.01 * input.orientation.gamma)
-                if (input.motion) {
-                    camera.position.x += (0.003 * input.orientation.gamma)
-                }
-            }
+        if (this.gameOver) return
 
-            // Keyboard controls
-            // if (input['a'] || input['ArrowLeft']) {
-            //     sphere.position.x -= 0.1
-            // }
-            // if (input['d'] || input['ArrowRight']) {
-            //     sphere.position.x += 0.1
-            // }
-        } else {
-            sphere.position.x = Math.round(parseFloat(sphere.position.x.toFixed(1)))
+        // Sensor controls
+        if (input.orientation) {
+            sphere.position.x += (0.01 * input.orientation.gamma)
+            camera.position.x = (0.05 * input.orientation.gamma)
         }
+
+        // Keyboard controls
+        if (input['a'] || input['ArrowLeft']) {
+            sphere.position.x -= 0.1
+        }
+        if (input['d'] || input['ArrowRight']) {
+            sphere.position.x += 0.1
+        }
+
+        // clamp sphere position
+        if (Math.abs(sphere.position.x) > 2) sphere.position.x = Math.round(parseFloat(sphere.position.x.toFixed(1)))
 
         obstacles.forEach(obstacle => {
             if (obstacle.position.z < -5) {
-                // this.resetObstaclePosition(obstacle)
-                obstacle.position.z = 75 // + ((obstacles.length -1) * 15)
+                // Puth obstacle back in line
+                obstacle.position.z = 75
                 obstacle.position.y = 1
                 obstacle.position.x = (Math.random() * 3) - 1.5
 
@@ -197,6 +186,5 @@ export default class DodgeScene extends SceneBase {
 
     public clean(): void {
         window.removeEventListener("deviceorientation", this.handleOrientation, true)
-        window.removeEventListener("devicemotion", this.handleMotion, true)
     }
 }

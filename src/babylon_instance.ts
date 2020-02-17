@@ -33,13 +33,6 @@ export default class BabylonInstance {
 
     public start(): void {
         const defaultScene = new MainMenuScene(this)
-        // const defaultScene = new TestScene(
-        //     this, 
-        //     "../editorprojects/testscene/",
-        //     "scene.glb"
-        // )
-
-        // console.log(defaultScene)
 
         this.changeScene(defaultScene)
     }
@@ -50,11 +43,16 @@ export default class BabylonInstance {
 
     public changeScene(scene: SceneBase): void {
 
-        if (this.currentScene) this.currentScene.clean()
+        if (this.currentScene) {
+            this.currentScene.clean()
+            // this.currentScene.scene.debugLayer.hide()
+        }
 
         this.engine.stopRenderLoop()
 
         this.currentScene = scene
+
+        // this.currentScene.scene.debugLayer.show()
 
         scene.initialize()
 
