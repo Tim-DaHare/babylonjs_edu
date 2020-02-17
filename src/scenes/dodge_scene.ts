@@ -10,6 +10,8 @@ import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture
 import { Button, TextBlock, Control } from "@babylonjs/gui"
 
 import SceneBase from "./scene_base"
+import { Camera } from '@babylonjs/core';
+import { InputManager } from '@babylonjs/core/Inputs/scene.inputManager';
 
 interface Input {
     // Accept random keys with any value for interface 
@@ -36,19 +38,33 @@ export default class DodgeScene extends SceneBase {
     sphere: Mesh = Mesh.CreateSphere('sphere1', 16, 2, this.scene) // Our built-in 'sphere' shape. Params: name, subdivs, size, scene
     obstacles: Mesh[] = []
 
-    private resetObstaclePosition(obstacle: Mesh): void
-    {
-        const i = this.obstacles.findIndex(mesh => mesh.id === obstacle.id)
+    private handleOrientation = (event: DeviceOrientationEvent) => {
+        this.input.orientation = {
+            gamma: event.gamma,
+            alpha: event.alpha,
+            beta: event.beta
+        }
 
-        // console.log(i)
-
-        obstacle.position.z = 100 + (i * 15)
-        obstacle.position.x = (Math.random() * 3) - 1.5
-        obstacle.position.y = 1
+        // console.log(event)
     }
 
+    private handleMotion = (event: DeviceMotionEvent) => {
+        console.log(event.rotationRate)
+        this.input.motion = {
+            rotationRate: event.rotationRate
+        }
+    }
+
+    // private resetObstaclePosition(obstacle: Mesh): void {
+    //     const i = this.obstacles.findIndex(mesh => mesh.id === obstacle.id)
+
+    //     obstacle.position.z = 100 + (i * 15)
+    //     obstacle.position.x = (Math.random() * 3) - 1.5
+    //     obstacle.position.y = 1
+    // }
+
     public initialize() {
-        const { 
+        const {
             scene,
             canvas,
             guiTexture,
@@ -59,9 +75,10 @@ export default class DodgeScene extends SceneBase {
             scoreCounter
         } = this
 
-        // console.log(this.startTime)
-
         scene.actionManager = new ActionManager(scene)
+
+        window.addEventListener("deviceorientation", this.handleOrientation, true)
+        window.addEventListener("devicemotion", this.handleMotion, true)
 
         scoreCounter.color = "white"
         scoreCounter.fontSize = 100
@@ -74,7 +91,8 @@ export default class DodgeScene extends SceneBase {
 
         // const camera = new FreeCamera('camera1', new Vector3(0, 5, -10), scene)
         camera.setTarget(Vector3.Zero()) // This targets the camera to scene origin
-        camera.attachControl(canvas, true)
+        camera.parent = sphere
+        // camera.attachControl(canvas, true)
 
         const light = new HemisphericLight('light1', new Vector3(0, 1, 0), scene) // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
         light.intensity = 0.7
@@ -100,7 +118,7 @@ export default class DodgeScene extends SceneBase {
         scene.actionManager.registerAction(
             new ExecuteCodeAction(
                 { trigger: ActionManager.OnKeyUpTrigger },
-                e => { 
+                e => {
                     input[e.sourceEvent.key] = e.sourceEvent.type === 'keydown'
                 }
             )
@@ -131,9 +149,7 @@ export default class DodgeScene extends SceneBase {
 
             obstacles.push(newObstacle)
 
-
             // this.resetObstaclePosition(newObstacle)
-
         }
     }
 
@@ -141,17 +157,27 @@ export default class DodgeScene extends SceneBase {
         const {
             input,
             sphere,
+            camera,
             obstacles,
             scoreCounter
         } = this
 
         if (Math.abs(sphere.position.x) <= 3) {
-            if (input['a'] || input['ArrowLeft']) {
-                sphere.position.x -= 0.1
+            // Sensor controls
+            if (input.orientation) {
+                sphere.position.x += (0.01 * input.orientation.gamma)
+                if (input.motion) {
+                    camera.position.x += (0.003 * input.orientation.gamma)
+                }
             }
-            if (input['d'] || input['ArrowRight']) {
-                sphere.position.x += 0.1
-            }
+
+            // Keyboard controls
+            // if (input['a'] || input['ArrowLeft']) {
+            //     sphere.position.x -= 0.1
+            // }
+            // if (input['d'] || input['ArrowRight']) {
+            //     sphere.position.x += 0.1
+            // }
         } else {
             sphere.position.x = Math.round(parseFloat(sphere.position.x.toFixed(1)))
         }
@@ -167,5 +193,10 @@ export default class DodgeScene extends SceneBase {
             }
             obstacle.moveWithCollisions(this.OBSTACLE_VELOCITY)
         })
+    }
+
+    public clean(): void {
+        window.removeEventListener("deviceorientation", this.handleOrientation, true)
+        window.removeEventListener("devicemotion", this.handleMotion, true)
     }
 }

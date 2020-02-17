@@ -1,6 +1,8 @@
 import { Engine } from "@babylonjs/core/Engines/engine"
 import SceneBase from "./scenes/scene_base"
+
 import MainMenuScene from "./scenes/mainmenu_scene"
+import DodgeScene from "./scenes/dodge_scene"
 
 import TestScene from "./scenes/test_scene"
 
@@ -8,7 +10,7 @@ import "@babylonjs/core/Debug/debugLayer"
 import "@babylonjs/inspector"
 
 export default class BabylonInstance {
-    
+
     public canvas: HTMLCanvasElement
     public engine: Engine
 
@@ -16,21 +18,20 @@ export default class BabylonInstance {
 
     private onResize = () => this.engine.resize()
 
-    constructor () {
+    constructor() {
         this.canvas = document.getElementById("app_canvas") as HTMLCanvasElement
         this.canvas.tabIndex = 1
 
         this.engine = new Engine(
-            this.canvas, 
-            false, 
+            this.canvas,
+            false,
             { preserveDrawingBuffer: true }
         )
 
         window.addEventListener("resize", this.onResize)
     }
 
-    public start(): void
-    {
+    public start(): void {
         const defaultScene = new MainMenuScene(this)
         // const defaultScene = new TestScene(
         //     this, 
@@ -43,13 +44,14 @@ export default class BabylonInstance {
         this.changeScene(defaultScene)
     }
 
-    public stop(): void 
-    {
+    public stop(): void {
         this.canvas.removeEventListener("resize", this.onResize)
     }
 
-    public changeScene(scene: SceneBase): void
-    {
+    public changeScene(scene: SceneBase): void {
+
+        if (this.currentScene) this.currentScene.clean()
+
         this.engine.stopRenderLoop()
 
         this.currentScene = scene

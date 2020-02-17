@@ -39,4 +39,8 @@ export default class MainMenuScene extends SceneBase {
     public sceneLoop() {
 
     }
+
+    public clean(): void {
+
+    }
 }

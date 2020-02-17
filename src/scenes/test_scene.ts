@@ -14,7 +14,7 @@ export default class TestScene extends SceneBase {
             camera,
             canvas
         } = this
-        
+
         this.scene.activeCamera = this.camera
 
         camera.setTarget(Vector3.Zero()) // This targets the camera to scene origin
@@ -22,6 +22,10 @@ export default class TestScene extends SceneBase {
     }
 
     public sceneLoop() {
+
+    }
+
+    public clean() {
 
     }
 }
