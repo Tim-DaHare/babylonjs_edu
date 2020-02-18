@@ -66,7 +66,7 @@ export default class DodgeScene extends SceneBase {
         } = this
 
         // Load custom infinite terrain
-        SceneLoader.ImportMesh("", "./assets/", "terrain.glb", this.scene, (importedMeshes: AbstractMesh[]) => {
+        SceneLoader.ImportMesh(null, "./assets/", "terrain.glb", this.scene, (importedMeshes: AbstractMesh[]) => {
             const terrainMesh = importedMeshes[1] as Mesh
             terrainMesh.setParent(null)
             terrainMesh.isVisible = false
@@ -76,23 +76,6 @@ export default class DodgeScene extends SceneBase {
                 terrainInstance.isVisible = true
                 terrainInstance.position = new Vector3(0, -0.5, i * 20)
             }
-        })
-
-        SceneLoader.ImportMesh("", "./assets/", "tree.glb", this.scene, (importedMeshes: AbstractMesh[]) => {
-            const treeMesh = importedMeshes[0] as Mesh
-            treeMesh.material = this.scene.getMaterialByName("leaves")
-
-            console.log(treeMesh.material)
-
-            treeMesh.setParent(null)
-            // treeMesh.isVisible = false
-
-            // for (let i = 0; i < 20; i++) {
-            //     const treeInstance = treeMesh.createInstance(`Terrain ${i}`)
-            //     // terrainInstance.isVisible = true
-            //     // treeInstance.material = leavesMaterial
-            //     treeInstance.position = new Vector3(0, -0.5, i * 20)
-            // }
         })
 
         scene.actionManager = new ActionManager(scene)
