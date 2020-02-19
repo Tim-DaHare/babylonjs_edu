@@ -190,8 +190,15 @@ export default class DodgeScene extends SceneBase {
         if (input['d'] || input['ArrowRight']) {
             sphere.position.x += 0.1
         }
+
         // clamp sphere position
-        if (Math.abs(sphere.position.x) > 2) sphere.position.x = Math.round(parseFloat(sphere.position.x.toFixed(1)))
+        if (sphere.position.x > 2) {
+            sphere.position.x = 2
+        }
+        if (sphere.position.x < -2) {
+            sphere.position.x = -2
+        }
+        // if (Math.abs(sphere.position.x) > 2) sphere.position.x = Math.round(parseFloat(sphere.position.x.toFixed(1)))
 
         obstacles.forEach(obstacle => {
             if (obstacle.position.z < -5) {
