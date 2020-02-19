@@ -51,11 +51,13 @@ export default class DodgeScene extends SceneBase {
     }
 
     private restart() {
-        // alert("restart")
         const { terrains, obstacles } = this
         this.gameOver = false
         this.guiTexture.removeControl(this.gameOverText)
         this.guiTexture.removeControl(this.restartButton)
+        
+        this.scoreCounter.text = "0"
+        this.obstaceleSpeed = 10
 
         terrains.forEach((terrain, i) => {
             terrain.position = new Vector3(0, -0.5, i * 20)
