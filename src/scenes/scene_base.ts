@@ -31,6 +31,6 @@ export default abstract class SceneBase {
     }
 
     public abstract initialize(): void
-    public abstract sceneLoop(): void
+    public abstract sceneLoop(deltaTime: number): void
     public abstract clean(): void
 }

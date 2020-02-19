@@ -45,14 +45,14 @@ export default class BabylonInstance {
 
         if (this.currentScene) {
             this.currentScene.clean()
-            this.currentScene.scene.debugLayer.hide()
+            // this.currentScene.scene.debugLayer.hide()
         }
 
         this.engine.stopRenderLoop()
 
         this.currentScene = scene
 
-        this.currentScene.scene.debugLayer.show()
+        // this.currentScene.scene.debugLayer.show()
 
         scene.initialize()
 
@@ -60,7 +60,7 @@ export default class BabylonInstance {
         this.canvas.focus()
 
         this.engine.runRenderLoop(() => {
-            scene.sceneLoop()
+            scene.sceneLoop(this.engine.getDeltaTime() / 1000)
             scene.scene.render()
         })
     }

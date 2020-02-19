@@ -4,7 +4,7 @@ import { FreeCamera, TargetCamera } from '@babylonjs/core/Cameras'
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight'
 import { GridMaterial } from '@babylonjs/materials/grid'
 import { ActionManager } from '@babylonjs/core/Actions/actionManager'
-import { Mesh, AbstractMesh } from '@babylonjs/core/Meshes'
+import { Mesh, AbstractMesh, InstancedMesh } from '@babylonjs/core/Meshes'
 import { MeshBuilder } from '@babylonjs/core/Meshes'
 import { ExecuteCodeAction } from '@babylonjs/core/Actions'
 import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture"
@@ -20,13 +20,10 @@ interface Input {
 export default class DodgeScene extends SceneBase {
 
     OBSTACLE_COUNT = 5
-    OBSTACLE_MIN_SPEED = 0.3
-    OBSTACLE_MAX_SPEED = 5
+    OBSTACLE_MAX_SPEED = 20
 
-    obstaceleSpeed = 0.3
-    obstacleVelocity = new Vector3(0, 0, -this.obstaceleSpeed)
-
-    startTime: number = new Date().getTime()
+    obstaceleSpeed = 10
+    obstacleSpeedMultiplier = 0.1
 
     input: Input = {}
 
@@ -41,7 +38,7 @@ export default class DodgeScene extends SceneBase {
     // Scene objects
     camera: FreeCamera = new FreeCamera('main_camera', new Vector3(0, 3, -10), this.scene)
     sphere: Mesh = Mesh.CreateSphere('sphere1', 16, 2, this.scene) // Our built-in 'sphere' shape. Params: name, subdivs, size, scene
-    terrains: Mesh[] = []
+    terrains: InstancedMesh[] = []
     obstacles: Mesh[] = []
 
     private handleOrientation = (event: DeviceOrientationEvent) => {
@@ -75,6 +72,8 @@ export default class DodgeScene extends SceneBase {
                 const terrainInstance = terrainMesh.createInstance(`Terrain ${i}`)
                 terrainInstance.isVisible = true
                 terrainInstance.position = new Vector3(0, -0.5, i * 20)
+
+                this.terrains.push(terrainInstance)
             }
         })
 
@@ -96,7 +95,7 @@ export default class DodgeScene extends SceneBase {
 
         camera.parent = sphere
         camera.setTarget(new Vector3(0, 3, 10)) // This targets the camera to scene origin
-        camera.attachControl(canvas, true)
+        // camera.attachControl(canvas, true)
 
         const light = new HemisphericLight('light1', new Vector3(0, 1, 0), scene) // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
         // light.intensity = 0.7
@@ -153,21 +152,19 @@ export default class DodgeScene extends SceneBase {
         }
     }
 
-    public sceneLoop() {
+    public sceneLoop(deltaTime: number) {
         const {
             input,
-            startTime,
             sphere,
             camera,
+            terrains,
             obstacles,
             scoreCounter
         } = this
 
         if (this.gameOver) return
 
-        const gameTime = new Date().getTime() - startTime
-
-        this.obstacleVelocity = new Vector3(0, 0, -(this.OBSTACLE_MIN_SPEED + (gameTime * 0.00001)))
+        this.obstaceleSpeed = this.obstaceleSpeed <= this.OBSTACLE_MAX_SPEED ? this.obstaceleSpeed + (deltaTime) : this.OBSTACLE_MAX_SPEED
 
         // Sensor controls
         if (input.orientation) {
@@ -182,7 +179,6 @@ export default class DodgeScene extends SceneBase {
         if (input['d'] || input['ArrowRight']) {
             sphere.position.x += 0.1
         }
-
         // clamp sphere position
         if (Math.abs(sphere.position.x) > 2) sphere.position.x = Math.round(parseFloat(sphere.position.x.toFixed(1)))
 
@@ -195,7 +191,14 @@ export default class DodgeScene extends SceneBase {
 
                 scoreCounter.text = (parseInt(scoreCounter.text) + 1).toString()
             }
-            obstacle.moveWithCollisions(this.obstacleVelocity)
+            obstacle.position.z -= this.obstaceleSpeed * deltaTime
+        })
+
+        terrains.forEach(terrain => {
+            if (terrain.position.z < -20) {
+                terrain.position.z = 80
+            }
+            terrain.position.z -= this.obstaceleSpeed * deltaTime
         })
     }
 
