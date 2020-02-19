@@ -64,7 +64,7 @@ export default class DodgeScene extends SceneBase {
         obstacles.forEach((obstacle, i) => {
             obstacle.position.z = 75 + (i * (75 / this.OBSTACLE_COUNT))
             obstacle.position.x = (Math.random() * 3) - 1.5
-            obstacle.position.y = 1
+            // obstacle.position.y = 1
         })
     }
 
@@ -156,11 +156,11 @@ export default class DodgeScene extends SceneBase {
 
         // Generate obstacles
         for (let i = 0; i < this.OBSTACLE_COUNT; i++) {
-            const newObstacle = MeshBuilder.CreateBox(`Box ${i}`, { size: 1.5 }, scene)
+            const newObstacle = MeshBuilder.CreateIcoSphere(`Obstacle ${i}`, { radius: 0.8 }, scene)
 
             newObstacle.position.z = 75 + (i * (75 / this.OBSTACLE_COUNT))
             newObstacle.position.x = (Math.random() * 3) - 1.5
-            newObstacle.position.y = 1
+            newObstacle.position.y = -0.3
 
             newObstacle.actionManager = new ActionManager(scene)
             newObstacle.actionManager.registerAction(new ExecuteCodeAction(
@@ -228,7 +228,7 @@ export default class DodgeScene extends SceneBase {
             if (obstacle.position.z < -5) {
                 // Puth obstacle back in line
                 obstacle.position.z = 75
-                obstacle.position.y = 1
+                // obstacle.position.y = 1
                 obstacle.position.x = (Math.random() * 3) - 1.5
 
                 scoreCounter.text = (parseInt(scoreCounter.text) + 1).toString()
