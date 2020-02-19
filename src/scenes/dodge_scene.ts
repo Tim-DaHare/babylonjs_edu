@@ -34,6 +34,7 @@ export default class DodgeScene extends SceneBase {
 
     gameOverText: TextBlock = new TextBlock("game_over", "Game Over!")
     scoreCounter: TextBlock = new TextBlock("score_counter", "0")
+    restartButton: Button = Button.CreateSimpleButton("restart_button", "Restart")
 
     // Scene objects
     camera: FreeCamera = new FreeCamera('main_camera', new Vector3(0, 3, -10), this.scene)
@@ -55,6 +56,7 @@ export default class DodgeScene extends SceneBase {
             canvas,
             guiTexture,
             gameOverText,
+            restartButton,
             input,
             camera,
             sphere,
@@ -92,6 +94,12 @@ export default class DodgeScene extends SceneBase {
 
         gameOverText.color = "white"
         gameOverText.fontSize = 75
+
+        restartButton.width = "150px"
+        restartButton.height = "50px"
+        restartButton.onPointerUpObservable.add(() => {
+            this.babylonInstance.restartScene()
+        })
 
         camera.parent = sphere
         camera.setTarget(new Vector3(0, 3, 10)) // This targets the camera to scene origin
@@ -144,6 +152,7 @@ export default class DodgeScene extends SceneBase {
                 },
                 () => {
                     guiTexture.addControl(this.gameOverText)
+                    guiTexture.addControl(restartButton)
                     this.gameOver = true
                 }
             ))

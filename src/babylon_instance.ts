@@ -41,6 +41,14 @@ export default class BabylonInstance {
         this.canvas.removeEventListener("resize", this.onResize)
     }
 
+    public restartScene() {
+        const { currentScene } = this
+        if(currentScene) {
+            currentScene.scene.dispose()
+            this.changeScene(new DodgeScene(this))
+        }
+    }
+
     public changeScene(scene: SceneBase): void {
 
         if (this.currentScene) {
