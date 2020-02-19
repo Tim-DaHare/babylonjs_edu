@@ -92,11 +92,13 @@ export default class DodgeScene extends SceneBase {
 
         guiTexture.addControl(scoreCounter)
 
+        gameOverText.top = -100
         gameOverText.color = "white"
         gameOverText.fontSize = 75
 
         restartButton.width = "150px"
         restartButton.height = "50px"
+        restartButton.color = "white"
         restartButton.onPointerUpObservable.add(() => {
             this.babylonInstance.restartScene()
         })
@@ -106,7 +108,7 @@ export default class DodgeScene extends SceneBase {
         // camera.attachControl(canvas, true)
 
         const light = new HemisphericLight('light1', new Vector3(0, 1, 0), scene) // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
-        // light.intensity = 0.7
+        light.intensity = 0.8
 
         const material = new GridMaterial('grid', scene) // Create a grid material
 
