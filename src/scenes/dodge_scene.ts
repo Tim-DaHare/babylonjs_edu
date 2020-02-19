@@ -82,8 +82,6 @@ export default class DodgeScene extends SceneBase {
             scoreCounter
         } = this
 
-        // alert("init")
-
         // Load custom infinite terrain
         if (this.terrains.length === 0) {
             SceneLoader.ImportMesh(null, "./assets/", "terrain.glb", this.scene, (importedMeshes: AbstractMesh[]) => {
@@ -124,7 +122,7 @@ export default class DodgeScene extends SceneBase {
 
         camera.parent = sphere
         camera.setTarget(new Vector3(0, 3, 10)) // This targets the camera to scene origin
-        camera.attachControl(canvas, true)
+        // camera.attachControl(canvas, true)
 
         const light = new HemisphericLight('light1', new Vector3(0, 1, 0), scene) // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
         light.intensity = 0.8
@@ -133,10 +131,6 @@ export default class DodgeScene extends SceneBase {
 
         sphere.position.y = 1
         sphere.material = material
-
-        // Our built-in 'ground' shape. Params: name, width, depth, subdivs, scene
-        // const ground = Mesh.CreateGround('ground1', 6, 150, 2, scene)
-        // ground.material = material
 
         scene.actionManager.registerAction(
             new ExecuteCodeAction(
