@@ -1,6 +1,6 @@
 import { Vector3 } from '@babylonjs/core/Maths/math'
 import { SceneLoader } from "@babylonjs/core"
-import { FreeCamera, TargetCamera } from '@babylonjs/core/Cameras'
+import { FreeCamera } from '@babylonjs/core/Cameras'
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight'
 import { GridMaterial } from '@babylonjs/materials/grid'
 import { ActionManager } from '@babylonjs/core/Actions/actionManager'
@@ -32,7 +32,7 @@ export default class DodgeScene extends SceneBase {
     // GUI
     guiTexture: AdvancedDynamicTexture = AdvancedDynamicTexture.CreateFullscreenUI("DODGE_SCENE_UI")
 
-    gameOverText: TextBlock = new TextBlock("game_over", "Game Over!")
+    gameOverText: TextBlock = new TextBlock("game_over", "Game Over")
     scoreCounter: TextBlock = new TextBlock("score_counter", "0")
     restartButton: Button = Button.CreateSimpleButton("restart_button", "Restart")
 
@@ -50,13 +50,31 @@ export default class DodgeScene extends SceneBase {
         }
     }
 
+    private restart() {
+        // alert("restart")
+        const { terrains, obstacles } = this
+        this.gameOver = false
+        this.guiTexture.removeControl(this.gameOverText)
+        this.guiTexture.removeControl(this.restartButton)
+
+        terrains.forEach((terrain, i) => {
+            terrain.position = new Vector3(0, -0.5, i * 20)
+        })
+
+        obstacles.forEach((obstacle, i) => {
+            obstacle.position.z = 75 + (i * (75 / this.OBSTACLE_COUNT))
+            obstacle.position.x = (Math.random() * 3) - 1.5
+            obstacle.position.y = 1
+        })
+    }
+
     public initialize() {
         const {
             scene,
             canvas,
             guiTexture,
             gameOverText,
-            restartButton,
+            // restartButton,
             input,
             camera,
             sphere,
@@ -64,20 +82,24 @@ export default class DodgeScene extends SceneBase {
             scoreCounter
         } = this
 
+        // alert("init")
+
         // Load custom infinite terrain
-        SceneLoader.ImportMesh(null, "./assets/", "terrain.glb", this.scene, (importedMeshes: AbstractMesh[]) => {
-            const terrainMesh = importedMeshes[1] as Mesh
-            terrainMesh.setParent(null)
-            terrainMesh.isVisible = false
+        if (this.terrains.length === 0) {
+            SceneLoader.ImportMesh(null, "./assets/", "terrain.glb", this.scene, (importedMeshes: AbstractMesh[]) => {
+                const terrainMesh = importedMeshes[1] as Mesh
+                terrainMesh.setParent(null)
+                terrainMesh.isVisible = false
 
-            for (let i = 0; i < 5; i++) {
-                const terrainInstance = terrainMesh.createInstance(`Terrain ${i}`)
-                terrainInstance.isVisible = true
-                terrainInstance.position = new Vector3(0, -0.5, i * 20)
+                for (let i = 0; i < 5; i++) {
+                    const terrainInstance = terrainMesh.createInstance(`Terrain ${i}`)
+                    terrainInstance.isVisible = true
+                    terrainInstance.position = new Vector3(0, -0.5, i * 20)
 
-                this.terrains.push(terrainInstance)
-            }
-        })
+                    this.terrains.push(terrainInstance)
+                }
+            })
+        }
 
         scene.actionManager = new ActionManager(scene)
 
@@ -96,16 +118,13 @@ export default class DodgeScene extends SceneBase {
         gameOverText.color = "white"
         gameOverText.fontSize = 75
 
-        restartButton.width = "150px"
-        restartButton.height = "50px"
-        restartButton.color = "white"
-        restartButton.onPointerUpObservable.add(() => {
-            this.babylonInstance.restartScene()
-        })
+        this.restartButton.width = "150px"
+        this.restartButton.height = "50px"
+        this.restartButton.color = "white"
 
         camera.parent = sphere
         camera.setTarget(new Vector3(0, 3, 10)) // This targets the camera to scene origin
-        // camera.attachControl(canvas, true)
+        camera.attachControl(canvas, true)
 
         const light = new HemisphericLight('light1', new Vector3(0, 1, 0), scene) // This creates a light, aiming 0,1,0 - to the sky (non-mesh)
         light.intensity = 0.8
@@ -153,9 +172,14 @@ export default class DodgeScene extends SceneBase {
                     }
                 },
                 () => {
-                    guiTexture.addControl(this.gameOverText)
-                    guiTexture.addControl(restartButton)
                     this.gameOver = true
+
+                    guiTexture.addControl(this.gameOverText)
+
+                    this.restartButton.onPointerUpObservable.clear()
+                    this.restartButton.onPointerDownObservable.add(() => this.restart())
+
+                    guiTexture.addControl(this.restartButton)
                 }
             ))
 

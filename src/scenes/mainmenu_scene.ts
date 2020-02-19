@@ -4,8 +4,6 @@ import { AdvancedDynamicTexture } from "@babylonjs/gui/2D/advancedDynamicTexture
 import { Button, TextBlock } from "@babylonjs/gui"
 
 import SceneBase from "./scene_base"
-
-import TestScene from "./test_scene"
 import DodgeScene from "./dodge_scene"
 
 export default class MainMenuScene extends SceneBase {
@@ -31,6 +29,7 @@ export default class MainMenuScene extends SceneBase {
         dodgeSceneButton.color = "white"
         dodgeSceneButton.onPointerUpObservable.add(() => {
             this.babylonInstance.changeScene(new DodgeScene(this.babylonInstance))
+            dodgeSceneButton.onPointerUpObservable.clear()
         })
 
         guiTexture.addControl(dodgeSceneButton)

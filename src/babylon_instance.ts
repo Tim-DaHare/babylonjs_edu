@@ -2,9 +2,6 @@ import { Engine } from "@babylonjs/core/Engines/engine"
 import SceneBase from "./scenes/scene_base"
 
 import MainMenuScene from "./scenes/mainmenu_scene"
-import DodgeScene from "./scenes/dodge_scene"
-
-import TestScene from "./scenes/test_scene"
 
 import "@babylonjs/core/Debug/debugLayer"
 import "@babylonjs/inspector"
@@ -24,9 +21,11 @@ export default class BabylonInstance {
 
         this.engine = new Engine(
             this.canvas,
-            false,
-            { preserveDrawingBuffer: true }
+            // false,
+            // { preserveDrawingBuffer: true }
         )
+
+        this.engine.enableOfflineSupport = false
 
         window.addEventListener("resize", this.onResize)
     }
@@ -41,14 +40,6 @@ export default class BabylonInstance {
         this.canvas.removeEventListener("resize", this.onResize)
     }
 
-    public restartScene() {
-        const { currentScene } = this
-        if(currentScene) {
-            currentScene.scene.dispose()
-            this.changeScene(new DodgeScene(this))
-        }
-    }
-
     public changeScene(scene: SceneBase): void {
 
         if (this.currentScene) {
@@ -61,7 +52,6 @@ export default class BabylonInstance {
         this.currentScene = scene
 
         // this.currentScene.scene.debugLayer.show()
-
         scene.initialize()
 
         this.canvas.blur()
